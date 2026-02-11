@@ -206,7 +206,7 @@ module TT::Plugins::MaterialReplacer
   # @note Debug method to reload the plugin.
   #
   # @example
-  #   TT::Plugins::Template.reload
+  #   TT::Plugins::MaterialReplacer.reload
   #
   # @param [Boolean] tt_lib Reloads TT_Lib2 if +true+.
   #
