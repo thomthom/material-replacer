@@ -172,17 +172,25 @@ module TT::Plugins::MaterialReplacer
       pos = @pos
       pos[0] += 20
       pos[1] -= 20
+
+      str = ''
       if @state == 0
         #o_name = (@m_org.nil?) : 'Default' : @m_org.display_name
         p_name = (@picked.nil?) ? 'Default' : @picked.display_name
         str = "Replace #{p_name} ..."
-        view.draw_text(pos, str)
       else
         o_name = (@m_org.nil?) ? 'Default' : @m_org.display_name
         p_name = (@picked.nil?) ? 'Default' : @picked.display_name
         str = "Replace #{o_name}\nwith #{p_name}"
-        view.draw_text(pos, str)
       end
+
+      if view.respond_to?(:text_bounds)
+        bounds = view.text_bounds(pos,str)
+        points = bounds_to_polygon(bounds)
+        view.drawing_color = 'white'
+        view.draw2d(GL_QUADS, points)
+      end
+      view.draw_text(pos, str)
 
       # DEBUG
       #pos[1] += 40
@@ -197,6 +205,21 @@ module TT::Plugins::MaterialReplacer
       else
         UI.set_cursor(@c_dropper)
       end
+    end
+
+    private
+
+    # @param [Geom::Bounds2d] bounds
+    # @return [Array<Geom::Point3d>] Array of points representing the corners of the bounds.
+    def bounds_to_polygon(bounds)
+      x1, y1 = bounds.upper_left.to_a
+      x2, y2 = bounds.lower_right.to_a
+      points = [
+        Geom::Point3d.new(x1, y1),
+        Geom::Point3d.new(x1, y2),
+        Geom::Point3d.new(x2, y2),
+        Geom::Point3d.new(x2, y1),
+      ]
     end
 
   end # class
