@@ -137,32 +137,7 @@ module TT::Plugins::MaterialReplacer
       else
         return if @picked == @m_org
 
-        model = Sketchup.active_model
-
-        TT::Model.start_operation('Replace Materials')
-        Sketchup.set_status_text('Replacing materials. Please wait...')
-
-        model.entities.each { |e|
-          if e.respond_to?(:material)
-            e.material = @picked if e.material == @m_org
-          end
-          if e.respond_to?(:back_material)
-            e.back_material = @picked if e.back_material == @m_org
-          end
-        }
-        model.definitions.each { |d|
-          next if d.image?
-          d.entities.each { |e|
-            if e.respond_to?(:material)
-              e.material = @picked if e.material == @m_org
-            end
-            if e.respond_to?(:back_material)
-              e.back_material = @picked if e.back_material == @m_org
-            end
-          }
-        }
-
-        model.commit_operation
+        replace_materials(Sketchup.active_model, @m_org, @picked)
 
         activate
       end
@@ -226,6 +201,38 @@ module TT::Plugins::MaterialReplacer
     end
 
     private
+
+    # @param [Sketchup::Model] model
+    # @param [Sketchup::Material, nil] original Material to replace. +nil+ for default material.
+    # @param [Sketchup::Material, nil] replacement Material to use. +nil
+    def replace_materials(model, original, replacement)
+      model = Sketchup.active_model
+
+      TT::Model.start_operation('Replace Materials')
+      Sketchup.set_status_text('Replacing materials. Please wait...')
+
+      model.entities.each { |e|
+        if e.respond_to?(:material)
+          e.material = replacement if e.material == original
+        end
+        if e.respond_to?(:back_material)
+          e.back_material = replacement if e.back_material == original
+        end
+      }
+      model.definitions.each { |d|
+        next if d.image?
+        d.entities.each { |e|
+          if e.respond_to?(:material)
+            e.material = replacement if e.material == original
+          end
+          if e.respond_to?(:back_material)
+            e.back_material = replacement if e.back_material == original
+          end
+        }
+      }
+
+      model.commit_operation
+    end
 
     # @param [Geom::Bounds2d] bounds
     # @param [Integer] offset Number of pixels to offset the bounds by.
