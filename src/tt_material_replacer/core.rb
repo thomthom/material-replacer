@@ -186,7 +186,7 @@ module TT::Plugins::MaterialReplacer
 
       if view.respond_to?(:text_bounds)
         bounds = view.text_bounds(pos,str)
-        points = bounds_to_polygon(bounds)
+        points = bounds_to_polygon(offset_bounds(bounds, 3))
         view.drawing_color = 'white'
         view.draw2d(GL_QUADS, points)
       end
@@ -208,6 +208,18 @@ module TT::Plugins::MaterialReplacer
     end
 
     private
+
+    # @param [Geom::Bounds2d] bounds
+    # @param [Integer] offset Number of pixels to offset the bounds by.
+    # @return [Geom::Bounds2d] New bounds offset by the specified amount.
+    def offset_bounds(bounds, offset)
+      x1, y1 = bounds.upper_left.to_a
+      x2, y2 = bounds.lower_right.to_a
+      Geom::Bounds2d.new(
+        Geom::Point2d.new(x1 - offset, y1 - offset),
+        Geom::Point2d.new(x2 + offset, y2 + offset)
+      )
+    end
 
     # @param [Geom::Bounds2d] bounds
     # @return [Array<Geom::Point3d>] Array of points representing the corners of the bounds.
