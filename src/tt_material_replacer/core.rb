@@ -168,14 +168,28 @@ module TT::Plugins::MaterialReplacer
       end
     end
 
+    TEXT_OPTIONS = {
+      font: "Tahoma",
+      pixel_size: 13, # Use :size for SketchUp 2024.0 and older.
+      color: Sketchup::Color.new(20, 20, 20),
+      # :bold => true,
+      :vertical_align => TextVerticalAlignBoundsTop
+    }
+    if Sketchup.version.to_i < 25
+      # This is points on Windows and pixels on macOS.
+      pixels = TEXT_OPTIONS[:pixel_size]
+      points = pixels * 0.75
+      TEXT_OPTIONS[:size] = Sketchup.platform == :platform_win ? points : pixels
+      TEXT_OPTIONS.delete(:pixel_size)
+    end
+
+    TEXT_BACKGROUND = Sketchup::Color.new(220, 220, 220, 230)
+
     def draw(view)
-      pos = @pos
-      pos[0] += 20
-      pos[1] -= 20
+      pos = @pos.offset([35, -20])
 
       str = ''
       if @state == 0
-        #o_name = (@m_org.nil?) : 'Default' : @m_org.display_name
         p_name = (@picked.nil?) ? 'Default' : @picked.display_name
         str = "Replace #{p_name} ..."
       else
@@ -185,12 +199,16 @@ module TT::Plugins::MaterialReplacer
       end
 
       if view.respond_to?(:text_bounds)
-        bounds = view.text_bounds(pos,str)
+        bounds = view.text_bounds(pos, str, TEXT_OPTIONS)
         points = bounds_to_polygon(offset_bounds(bounds, 3))
-        view.drawing_color = 'white'
-        view.draw2d(GL_QUADS, points)
+        view.drawing_color = TEXT_BACKGROUND
+        view.draw2d(GL_QUADS, points, TEXT_OPTIONS)
       end
-      view.draw_text(pos, str)
+      if Sketchup.version.to_i < 16
+        view.draw_text(pos, str)
+      else
+        view.draw_text(pos, str, TEXT_OPTIONS)
+      end
 
       # DEBUG
       #pos[1] += 40
